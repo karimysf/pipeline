@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'src/index.html'
+    #paths:
+      #- 'src/index.html'
 
 
 env:
