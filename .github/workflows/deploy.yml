@@ -34,6 +34,12 @@ jobs:
       
       - name: Generate SSH Key
         run: ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+      - name: Debug SSH connectivity
+        run: |
+          echo "Trying to ping $MANAGER_IP"
+          ping -c 3 $MANAGER_IP || echo "Ping failed"
+          nc -zv $MANAGER_IP 22 || echo "Port 22 unreachable"
+
 
       - name: Set SSH Permissions and Add Host
         run: |
