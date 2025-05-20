@@ -9,7 +9,7 @@ on:
 
 
 env:
-  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/fevertokens-test
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/fevertokens-technical-assesst
   MANAGER_IP: ${{ secrets.MANAGER_IP }}
   WORKER_IP: ${{ secrets.WORKER_IP }}
 
@@ -28,5 +28,6 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t $IMAGE_NAME:latest .
+          docker build -t $IMAGE_NAME:latest -f src/Dockerfile src
           docker push $IMAGE_NAME:latest
+      
