@@ -8,9 +8,25 @@ on:
       - 'src/index.html'
 
 
+env:
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/fevertokens-test
+  MANAGER_IP: ${{ secrets.MANAGER_IP }}
+  WORKER_IP: ${{ secrets.WORKER_IP }}
+
 jobs:
-  test:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Confirm Trigger
-        run: echo "Workflow triggered successfully!"
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        run: echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+          docker push $IMAGE_NAME:latest
