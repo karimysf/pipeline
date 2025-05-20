@@ -8,10 +8,9 @@ on:
       - 'src/index.html'
   workflow_dispatch:
 
-
 env:
   IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/fevertokens-technical-assesst
-  MANAGER_IP: ${{ secrets.MANAGER_IP }}
+  MANAGER_SSH_USER_HOST: ${{ secrets.MANAGER_SSH_USER_HOST }}  # e.g. ip172-18-0-35-d0mcu7q91nsg00f4lgn0@direct.labs.play-with-docker.com
   WORKER_IP: ${{ secrets.WORKER_IP }}
 
 jobs:
@@ -34,24 +33,17 @@ jobs:
       
       - name: Generate SSH Key
         run: ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
-      - name: Debug SSH connectivity
-        run: |
-          echo "Trying to ping $MANAGER_IP"
-          ping -c 3 $MANAGER_IP || echo "Ping failed"
-          nc -zv $MANAGER_IP 22 || echo "Port 22 unreachable"
-
 
       - name: Set SSH Permissions and Add Host
         run: |
           mkdir -p ~/.ssh
           printf "%s\n" "${{ secrets.MANAGER_SSH_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H $MANAGER_IP >> ~/.ssh/known_hosts
-      
+          ssh-keyscan -H "$(echo $MANAGER_SSH_USER_HOST | cut -d '@' -f 2)" >> ~/.ssh/known_hosts
 
       - name: Deploy to Docker Swarm
         run: |
-          ssh -i ~/.ssh/id_ed25519 root@$MANAGER_IP << 'EOF'
+          ssh -i ~/.ssh/id_ed25519 $MANAGER_SSH_USER_HOST << EOF
             docker service rm web || true
             docker pull $IMAGE_NAME:latest
             echo "
