@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-    #paths:
-      #- 'src/index.html'
+    paths:
+      - 'src/index.html'
 
 
 env:
@@ -31,3 +31,33 @@ jobs:
           docker build -t $IMAGE_NAME:latest -f src/Dockerfile src
           docker push $IMAGE_NAME:latest
       
+      - name: Generate SSH Key
+        run: ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+
+      - name: Set SSH Permissions and Add Host
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.MANAGER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H $MANAGER_IP >> ~/.ssh/known_hosts
+
+      - name: Deploy to Docker Swarm
+        run: |
+          ssh -i ~/.ssh/id_ed25519 root@$MANAGER_IP << 'EOF'
+            docker service rm web || true
+            docker pull $IMAGE_NAME:latest
+            echo "
+            version: '3'
+            services:
+              web:
+                image: $IMAGE_NAME:latest
+                ports:
+                  - target: 80
+                    published: 80
+                    mode: host
+                deploy:
+                  placement:
+                    constraints: [node.hostname == worker]
+            " > docker-compose.yml
+            docker stack deploy -c docker-compose.yml webapp
+          EOF
