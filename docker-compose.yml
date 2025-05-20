@@ -1,0 +1,9 @@
+version: '3'
+services:
+  web:
+    image: ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}
+    ports:
+      - "80:80"
+    deploy:
+      placement:
+        constraints: [node.role == $WORKER_NODE_NAME]
