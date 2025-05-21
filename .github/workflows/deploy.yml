@@ -12,7 +12,8 @@ env:
   MANAGER_IP: ${{ vars.MANAGER_IP }}
   WORKER_IP: ${{ vars.WORKER_IP }}
   MANAGER_HOST: ${{ vars.MANAGER_HOST }}  
-  SSH_PORT: ${{ vars.SSH_PORT }}          
+  SSH_PORT: ${{ vars.SSH_PORT }}
+  DOCKER_HOST: "tcp://ip172-18-0-48:37862"
 jobs:
 
   build:
@@ -46,24 +47,35 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v4
 
-      #generate the ssh key pair
-    - name: Generate SSH Key
+    - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
         ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+        echo "SSH Public Key:"
         cat ~/.ssh/id_ed25519.pub
 
-    - name: Add SSH Key to Manager
+    - name: Configure SSH Access
       run: |
+        echo "Testing connection to $MANAGER_HOST:$SSH_PORT..."
+        nc -zv $MANAGER_HOST $SSH_PORT || echo "Port test failed - check PWD session"
+        
         ssh-keyscan -p $SSH_PORT -H $MANAGER_HOST >> ~/.ssh/known_hosts
-        ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT docker@$MANAGER_HOST \
-          "mkdir -p ~/.ssh && echo $(cat ~/.ssh/id_ed25519.pub) >> ~/.ssh/authorized_keys"
+        ssh -o ConnectTimeout=20 -i ~/.ssh/id_ed25519 -p $SSH_PORT \
+          docker@$MANAGER_HOST "echo 'SSH connection successful'" || exit 1
 
-    - name: Deploy to Swarm
+    - name: Deploy Stack
       run: |
-        scp -i ~/.ssh/id_ed25519 -P $SSH_PORT \
-          docker-compose.yml docker@$MANAGER_HOST:~/docker-compose.yml
         ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT docker@$MANAGER_HOST "
-          docker stack rm app_stack || true
-          docker stack deploy -c docker-compose.yml app_stack
+          docker stack deploy -c - app_stack <<EOF
+          version: '3.8'
+          services:
+            web:
+              image: ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$TAG
+              deploy:
+                placement:
+                  constraints: [node.role == worker]
+              ports:
+                - \"80:80\"
+          EOF
         "
