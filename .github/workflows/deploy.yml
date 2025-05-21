@@ -64,11 +64,11 @@ jobs:
         
         
         # Copy the docker-compose file to the manager node
-        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 docker-compose.yml docker@$MANAGER_IP:~/docker-compose.yml
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 docker-compose.yml ip172-18-0-48-d0n1d3291nsg00fc16e0@direct.labs.play-with-docker.com:~/docker-compose.yml
         
         # Connect and deploy to manager node
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 docker@$MANAGER_IP << 'ENDSSH'
-        
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 ip172-18-0-48-d0n1d3291nsg00fc16e0@direct.labs.play-with-docker.com << 'ENDSSH'
+
         # Deploy the stack using the uploaded docker-compose file
         docker stack deploy -c docker-compose.yml vietnam-app
           
