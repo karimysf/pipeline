@@ -50,39 +50,46 @@ jobs:
         MANAGER_HOST: ${{ vars.MANAGER_HOST }}
         SSH_PORT: ${{ vars.SSH_PORT || '22' }}
       run: |
-        # Extract hostname from MANAGER_HOST (remove username if present)
-        HOSTNAME=$(echo "$MANAGER_IP" | cut -d '@' -f2 2>/dev/null || echo "$MANAGER_IP")
-        echo "HOSTNAME value is $HOSTNAME  and && mangerhost value is ${{vars.MANAGER_HOST}}"
-        # Add manager to known hosts
-        ssh-keyscan -H $HOSTNAME >> ~/.ssh/known_hosts
-        
-         # Create docker-compose file with proper variables
-        export DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
-        export IMAGE_NAME=${IMAGE_NAME}
-        export TAG=${TAG}
-        export WORKER_NODE_ROLE='worker'
-        envsubst < docker-compose.yml > docker-compose-deploy.yml
-        cat docker-compose-deploy.yml
+          set -e
 
-        # Copy to manager node
-        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
+          # Extract host from MANAGER_HOST
+          HOSTNAME=${MANAGER_HOST#*@}
+          echo "HOSTNAME: $HOSTNAME"
+          echo "MANAGER_HOST: $MANAGER_HOST"
 
-        # Connect and deploy
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << EOF
-          echo "Connected to Swarm Manager"
+          # Add manager to known hosts
+          ssh-keyscan -H "$HOSTNAME" >> ~/.ssh/known_hosts
 
-          echo "Checking Docker Swarm status..."
-          docker info | grep -i swarm || { echo "Swarm not initialized"; exit 1; }
+          # Prepare variables for envsubst
+          export DOCKERHUB_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+          export IMAGE_NAME="${{ env.IMAGE_NAME }}"
+          export TAG="${{ env.TAG }}"
+          export WORKER_NODE_ROLE="worker"
 
-          echo "Listing nodes..."
-          docker node ls || { echo "Node listing failed"; exit 1; }
+          # Generate deploy compose file
+          envsubst < docker-compose.yml > docker-compose-deploy.yml
+          cat docker-compose-deploy.yml
 
-          echo "Deploying stack..."
-          docker stack deploy -c docker-compose.yml vietnam-app || { echo "Stack deploy failed"; exit 1; }
+          # Copy file to manager node
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
 
-          echo "Services in stack:"
-          docker stack services vietnam-app || { echo "Listing services failed"; exit 1; }
+          # Connect and deploy
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST << 'EOF'
+            set -e
+            echo "Connected to Swarm Manager"
 
-          echo "All services:"
-          docker service ls || { echo "docker service ls failed"; exit 1; }
-        EOF
+            echo "Checking Docker Swarm status..."
+            docker info | grep -i swarm || { echo "Swarm not initialized"; exit 1; }
+
+            echo "Listing nodes..."
+            docker node ls || { echo "Node listing failed"; exit 1; }
+
+            echo "Deploying stack..."
+            docker stack deploy -c docker-compose.yml vietnam-app || { echo "Stack deploy failed"; exit 1; }
+
+            echo "Listing stack services..."
+            docker stack services vietnam-app || { echo "Service listing failed"; exit 1; }
+
+            echo "All running services:"
+            docker service ls || { echo "docker service ls failed"; exit 1; }
+          EOF
