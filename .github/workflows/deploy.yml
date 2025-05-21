@@ -31,7 +31,7 @@ jobs:
       run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
   deploy: 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [build]
     steps: 
     - name: Check out the repo
