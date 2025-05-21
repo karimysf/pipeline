@@ -75,7 +75,7 @@ jobs:
 
           echo "$SSH_PORT && $MANAGER_HOST"
           # Connect and deploy
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "
+          ssh -i ~/.ssh/id_ed25519 -p 22 ip172-18-0-23-d0n3ija91nsg00fc1hgg@direct.labs.play-with-docker.com "
             echo '🔧 Connected to manager node';
             ls -la ~/docker-compose.yml;
             docker --version;
