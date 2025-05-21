@@ -8,8 +8,9 @@ on:
 env: 
   IMAGE_NAME: fevertokens-technical-assesst
   TAG: latest
-  MANAGER_IP : ip172-18-0-44-d0mtqtq91nsg00fc0d5g.direct.labs.play-with-docker.com
   WORKER_NODE_ROLE: worker
+  MANAGER_IP: ${{ vars.MANAGER_IP }}
+  WORKER_IP: ${{ vars.WORKER_IP }}
 jobs:
 
   build:
@@ -42,31 +43,23 @@ jobs:
     steps: 
     - name: Check out the repo
       uses: actions/checkout@v4
-    - name: generate the ssh key
-      run: | 
+
+      #generate the ssh key pair
+    - name: Generate SSH Key
+      run: |
+        mkdir -p ~/.ssh
         ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
+        cat ~/.ssh/id_ed25519.pub
+        
+    - name: Add SSH Key to Manager Node
+      run: |
+        ssh-keyscan -H $MANAGER_IP >> ~/.ssh/known_hosts
+        ssh -i ~/.ssh/id_ed25519 docker@$MANAGER_IP "mkdir -p ~/.ssh && echo $(cat ~/.ssh/id_ed25519.pub) >> ~/.ssh/authorized_keys"
     
-    - name: Remove existing service (if any)
-      uses: sagebind/docker-swarm-deploy-action@v2
-      with:
-        remote_host: ${{ env.MANAGER_IP }}
-        args: "service rm fevertokens-deployment_web"
-      continue-on-error: true
-
-    - name: Pull latest image on Swarm manager
-      uses: sagebind/docker-swarm-deploy-action@v2
-      with:
-        remote_host: ${{ env.MANAGER_IP }}
-        args: "pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
-
-    - name: Deploy to Docker Swarm using action
-      uses: sagebind/docker-swarm-deploy-action@v2
-      with:
-        remote_host:  ${{ env.MANAGER_IP }}
-        args: "stack deploy --compose-file docker-compose.yml fevertokens-deployment"
-      env:
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}   # this environment variable is going to be passed to docker-compose.yml file
-        IMAGE_NAME : ${{ env.IMAGE_NAME }}
-        TAG  : ${{ env.TAG }}
-        WORKER_NODE_ROLE : ${{env.WORKER_NODE_ROLE}}
+    - name: Deploy to Docker Swarm
+      run: |
+        scp -i ~/.ssh/id_ed25519 docker-compose.yml docker@$MANAGER_IP:~/docker-compose.yml
+        ssh -i ~/.ssh/id_ed25519 docker@$MANAGER_IP "
+        docker stack rm app_stack || true
+        docker stack deploy -c docker-compose.yml app_stack
+        "
