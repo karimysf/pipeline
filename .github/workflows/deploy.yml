@@ -47,12 +47,12 @@ jobs:
         ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
 
-    - name: Deploy to Docker Swarm using action
-      uses: sagebind/docker-swarm-deploy-action@v2
-      with:
-        remote_host:  ${{ env.MANAGER_IP }}
-        args: "stack deploy --compose-file docker-compose.yml fevertokens-deployment"
-      env:
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}   # this environment variable is going to be passed to docker-compose.yml file
-        IMAGE_NAME : ${{ env.IMAGE_NAME }}
-        TAG  : ${{ env.TAG }}
+        - name: Deploy to Docker Swarm using action
+        uses: sagebind/docker-swarm-deploy-action@v2
+        with:
+          remote_host: ${{ env.MANAGER_IP }}
+          args: "stack deploy --with-registry-auth --compose-file docker-compose.yml fevertokens-deployment"
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          TAG: ${{ env.TAG }}
