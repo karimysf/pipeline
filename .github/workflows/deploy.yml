@@ -50,15 +50,15 @@ jobs:
         MANAGER_HOST: ${{ vars.MANAGER_HOST }}
         SSH_PORT: ${{ vars.SSH_PORT || '22' }}
       run: |
-        # Extract hostname from MANAGER_HOST (remove username if present)
-        HOSTNAME=$(echo "$MANAGER_IP" | cut -d '@' -f2 2>/dev/null || echo "$MANAGER_IP")
-        echo "$HOSTNAME"
+        # Extract hostname from MANAGER_IP since that seems to be the correct value
+        HOSTNAME=$MANAGER_IP
+        echo "Using hostname: $HOSTNAME"
         
         # Add manager to known hosts
         ssh-keyscan -H $HOSTNAME >> ~/.ssh/known_hosts
-              
-        # Copy the docker-compose file to the manager node
-        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
+        
+        # Copy the existing docker-compose file to the manager node
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose.yml $MANAGER_HOST:~/docker-compose.yml
         
         # Connect and deploy to manager node
         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << ENDSSH    
