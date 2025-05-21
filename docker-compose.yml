@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 services:
   web:
     image: ${DOCKERHUB_USERNAME}/${IMAGE_NAME}:${TAG}
@@ -9,4 +9,5 @@ services:
       restart_policy:
         condition: on-failure
       placement:
-        constraints: [node.role == $WORKER_NODE_ROLE]
+        constraints:
+          - node.role == worker
