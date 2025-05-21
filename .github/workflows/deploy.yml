@@ -56,29 +56,33 @@ jobs:
         # Add manager to known hosts
         ssh-keyscan -H $HOSTNAME >> ~/.ssh/known_hosts
         
-        # Create a temporary docker-compose file with substituted variables
-        export DOCKERHUB_USERNAME='${{ secrets.DOCKER_USERNAME }}'
-        export IMAGE_NAME='${{ env.IMAGE_NAME }}'
-        export TAG='${{ env.TAG }}'
+         # Create docker-compose file with proper variables
+        export DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
+        export IMAGE_NAME=${IMAGE_NAME}
+        export TAG=${TAG}
         export WORKER_NODE_ROLE='worker'
         envsubst < docker-compose.yml > docker-compose-deploy.yml
         cat docker-compose-deploy.yml
-        
-        # Copy the docker-compose file to the manager node
+
+        # Copy to manager node
         scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
-        
-        # Connect and deploy to manager node
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << ENDSSH
-        # Environment variables are already exported in the host shell and the values will be expanded
-        # since we removed the single quotes from the ENDSSH delimiter
-        
-        # Show the environment for debugging
-        env | grep -E 'DOCKERHUB|IMAGE|TAG|WORKER'
-        
-        # Deploy the stack using the uploaded docker-compose file
-        docker stack deploy -c docker-compose.yml vietnam-app
-          
-        # Verify the deployment
-        docker stack services vietnam-app
-        docker service ls
-        ENDSSH
+
+        # Connect and deploy
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << EOF
+          echo "Connected to Swarm Manager"
+
+          echo "Checking Docker Swarm status..."
+          docker info | grep -i swarm || { echo "Swarm not initialized"; exit 1; }
+
+          echo "Listing nodes..."
+          docker node ls || { echo "Node listing failed"; exit 1; }
+
+          echo "Deploying stack..."
+          docker stack deploy -c docker-compose.yml vietnam-app || { echo "Stack deploy failed"; exit 1; }
+
+          echo "Services in stack:"
+          docker stack services vietnam-app || { echo "Listing services failed"; exit 1; }
+
+          echo "All services:"
+          docker service ls || { echo "docker service ls failed"; exit 1; }
+        EOF
