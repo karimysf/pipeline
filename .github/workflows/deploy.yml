@@ -57,12 +57,20 @@ jobs:
 
     - name: Configure SSH Access
       run: |
-        echo "Testing connection to $MANAGER_HOST:$SSH_PORT..."
-        nc -zv $MANAGER_HOST $SSH_PORT || echo "Port test failed - check PWD session"
-        
-        ssh-keyscan -p $SSH_PORT -H $MANAGER_HOST >> ~/.ssh/known_hosts
-        ssh -o ConnectTimeout=20 -i ~/.ssh/id_ed25519 -p $SSH_PORT \
-          docker@$MANAGER_HOST "echo 'SSH connection successful'" || exit 1
+          echo "Using Public IP: $MANAGER_HOST Port: $SSH_PORT"
+          
+          # Test raw TCP connection (skip DNS)
+          timeout 5 bash -c "cat < /dev/null > /dev/tcp/$MANAGER_HOST/$SSH_PORT" && \
+            echo "Port $SSH_PORT is open" || \
+            { echo "ERROR: Cannot reach $MANAGER_HOST:$SSH_PORT"; exit 1; }
+          
+          # SSH setup
+          ssh-keyscan -p $SSH_PORT $MANAGER_HOST >> ~/.ssh/known_hosts
+          ssh -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=20 \
+              -i ~/.ssh/id_ed25519 \
+              -p $SSH_PORT \
+              docker@$MANAGER_HOST "echo 'SSH successful'"
 
     - name: Deploy Stack
       run: |
