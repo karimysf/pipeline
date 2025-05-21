@@ -74,9 +74,7 @@ jobs:
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
 
           # Connect and deploy
-          ssh -vvv -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST << EOF
-            set -e
-            set -x
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST << EOF
 
             echo "📦 Connected to Swarm Manager"
 
