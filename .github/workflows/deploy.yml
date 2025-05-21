@@ -47,43 +47,31 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v4
 
-    - name: Setup SSH
+    - name: Generate SSH key
+      run: ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+
+    - name: Deploy to Docker Swarm
+      env:
+        MANAGER_IP: ${{ vars.MANAGER_IP }}
+        WORKER_IP: ${{ vars.WORKER_IP }}
       run: |
-        mkdir -p ~/.ssh
-        chmod 700 ~/.ssh
-        ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
-        echo "SSH Public Key:"
+        # Add manager and worker to known hosts
+        ssh-keyscan -H $MANAGER_IP >> ~/.ssh/known_hosts
+        
+        # Display the public key that needs to be added to the PWD nodes
+        echo "Please add this public key to the PWD nodes:"
         cat ~/.ssh/id_ed25519.pub
-
-    - name: Configure SSH Access
-      run: |
-          echo "Using Public IP: $MANAGER_HOST Port: $SSH_PORT"
+        
+        
+        # Copy the docker-compose file to the manager node
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 docker-compose.yml docker@$MANAGER_IP:~/docker-compose.yml
+        
+        # Connect and deploy to manager node
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 docker@$MANAGER_IP << 'ENDSSH'
+        
+        # Deploy the stack using the uploaded docker-compose file
+        docker stack deploy -c docker-compose.yml vietnam-app
           
-          # Test raw TCP connection (skip DNS)
-          timeout 5 bash -c "cat < /dev/null > /dev/tcp/$MANAGER_HOST/$SSH_PORT" && \
-            echo "Port $SSH_PORT is open" || \
-            { echo "ERROR: Cannot reach $MANAGER_HOST:$SSH_PORT"; exit 1; }
-          
-          # SSH setup
-          ssh-keyscan -p $SSH_PORT $MANAGER_HOST >> ~/.ssh/known_hosts
-          ssh -o StrictHostKeyChecking=no \
-              -o ConnectTimeout=20 \
-              -i ~/.ssh/id_ed25519 \
-              -p $SSH_PORT \
-              docker@$MANAGER_HOST "echo 'SSH successful'"
-
-    - name: Deploy Stack
-      run: |
-        ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT docker@$MANAGER_HOST "
-          docker stack deploy -c - app_stack <<EOF
-          version: '3.8'
-          services:
-            web:
-              image: ${{ secrets.DOCKER_USERNAME }}/$IMAGE_NAME:$TAG
-              deploy:
-                placement:
-                  constraints: [node.role == worker]
-              ports:
-                - \"80:80\"
-          EOF
-        "
+        # Verify the deployment
+        docker stack services vietnam-app
+        ENDSSH
