@@ -35,38 +35,38 @@ jobs:
       run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
 
 
-  deploy: 
+  deploy:
     runs-on: ubuntu-latest
     needs: [build]
-
-    steps: 
-    - name: Check out the repo
+    steps:
+    - name: Checkout repo
       uses: actions/checkout@v4
-    - name: generate the ssh key
-      run: | 
+
+    - name: Generate SSH key
+      run: |
         ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-    
-    - name: Remove existing service (if any)
-      uses: sagebind/docker-swarm-deploy-action@v2
-      with:
-        remote_host: ${{ env.MANAGER_IP }}
-        args: "service rm fevertokens-deployment_web"
-      continue-on-error: true
 
-    - name: Pull latest image on Swarm manager
-      uses: sagebind/docker-swarm-deploy-action@v2
-      with:
-        remote_host: ${{ env.MANAGER_IP }}
-        args: "pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
-
-    - name: Deploy to Docker Swarm using action
-      uses: sagebind/docker-swarm-deploy-action@v2
-      with:
-        remote_host:  ${{ env.MANAGER_IP }}
-        args: "stack deploy --compose-file docker-compose.yml fevertokens-deployment"
+    - name: Force update deployment
+      run: |
+        ssh -o StrictHostKeyChecking=no root@${{ env.MANAGER_IP }} << 'EOF'
+        # Remove entire stack if exists
+        docker stack rm fevertokens-deployment || true
+        
+        # Wait for cleanup
+        sleep 10
+        
+        # Pull the exact image we just built
+        docker pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+        
+        # Deploy with registry auth and force new image
+        docker stack deploy \
+          --with-registry-auth \
+          --compose-file docker-compose.yml \
+          fevertokens-deployment
+        EOF
       env:
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}   # this environment variable is going to be passed to docker-compose.yml file
-        IMAGE_NAME : ${{ env.IMAGE_NAME }}
-        TAG  : ${{ env.TAG }}
-        WORKER_NODE_ROLE : ${{env.WORKER_NODE_ROLE}}
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        IMAGE_NAME: ${{ env.IMAGE_NAME }}
+        TAG: ${{ env.TAG }}
+        WORKER_NODE_ROLE: ${{ env.WORKER_NODE_ROLE }}
