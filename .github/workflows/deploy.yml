@@ -47,11 +47,7 @@ jobs:
         MANAGER_HOST: ${{ vars.MANAGER_HOST }}
         SSH_PORT: ${{ vars.SSH_PORT || '22' }}
       run: |
-        # Extract hostname from MANAGER_HOST (remove username if present)
-        HOSTNAME=$(echo "$MANAGER_IP" | cut -d '@' -f2 2>/dev/null || echo "$MANAGER_IP")
-        echo "HOSTNAME value is $HOSTNAME  and && mangerhost value is ${{vars.MANAGER_HOST}}"
-        # Add manager to known hosts
-        ssh-keyscan -H $HOSTNAME >> ~/.ssh/known_hosts
+        ssh-keyscan -H $MANAGER_HOST >> ~/.ssh/known_hosts
         
         # Display the public key for debugging
         echo "Public key that should be added to PWD nodes:"
