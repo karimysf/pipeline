@@ -74,14 +74,27 @@ jobs:
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
 
           # Connect and deploy
-          ssh -vvv -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST << 'EOF'
+          ssh -vvv -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST << EOF
             set -e
             set -x
-            echo "Connected to Swarm Manager"
 
-            echo "Deploying stack..."
-            docker stack deploy -c docker-compose.yml vietnam-app || { echo "Stack deploy failed"; exit 1; }
+            echo "📦 Connected to Swarm Manager"
 
-            echo "Listing stack services..."
-            docker stack services vietnam-app || { echo "Service listing failed"; exit 1; }
+            echo "🔧 Docker Info:"
+            docker info
+
+            echo "🕸️ Ensuring Swarm is active"
+            docker info | grep "Swarm: active" || docker swarm init
+
+            echo "👥 Swarm Nodes:"
+            docker node ls
+
+            echo "📄 docker-compose.yml contents:"
+            cat docker-compose.yml
+
+            echo "🚀 Deploying stack"
+            docker stack deploy -c docker-compose.yml vietnam-app || { echo "❌ Stack deploy failed"; exit 1; }
+
+            echo "✅ Stack deployed. Listing services:"
+            docker stack services vietnam-app
           EOF
