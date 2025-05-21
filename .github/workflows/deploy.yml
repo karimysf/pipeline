@@ -73,6 +73,7 @@ jobs:
           # Copy file to manager node
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
 
+          echo "$SSH_PORT && $MANAGER_HOST"
           # Connect and deploy
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "
             echo '🔧 Connected to manager node';
