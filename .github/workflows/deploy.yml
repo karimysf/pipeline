@@ -38,7 +38,10 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Generate SSH key
-      run: ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+      run: |
+        ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+        echo "Public key that should be added to PWD nodes:"
+        cat ~/.ssh/id_ed25519.pub
 
     - name: Deploy to Docker Swarm
       env:
@@ -52,10 +55,6 @@ jobs:
         echo "HOSTNAME value is $HOSTNAME  and && mangerhost value is ${{vars.MANAGER_HOST}}"
         # Add manager to known hosts
         ssh-keyscan -H $HOSTNAME >> ~/.ssh/known_hosts
-        
-        # Display the public key for debugging
-        echo "Public key that should be added to PWD nodes:"
-        cat ~/.ssh/id_ed25519.pub
         
         # Create a temporary docker-compose file with substituted variables
         export DOCKERHUB_USERNAME='${{ secrets.DOCKER_USERNAME }}'
