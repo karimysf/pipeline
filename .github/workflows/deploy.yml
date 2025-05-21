@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'src/index.html'
+    
   workflow_dispatch:
 
 env: 
@@ -41,6 +40,7 @@ jobs:
     - name: Generate SSH key
       run: |
         ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+        echo "Public key that should be added to PWD nodes:"
         cat ~/.ssh/id_ed25519.pub
 
     - name: Deploy to Docker Swarm
@@ -52,33 +52,16 @@ jobs:
       run: |
         # Extract hostname from MANAGER_HOST (remove username if present)
         HOSTNAME=$(echo "$MANAGER_IP" | cut -d '@' -f2 2>/dev/null || echo "$MANAGER_IP")
+        echo "$HOSTNAME"
         
         # Add manager to known hosts
         ssh-keyscan -H $HOSTNAME >> ~/.ssh/known_hosts
-        
-        # Display the public key for debugging
-        echo "Public key that should be added to PWD nodes:"
-        cat ~/.ssh/id_ed25519.pub
-        
-        # Create a temporary docker-compose file with substituted variables
-        export DOCKERHUB_USERNAME='${{ secrets.DOCKER_USERNAME }}'
-        export IMAGE_NAME='${{ env.IMAGE_NAME }}'
-        export TAG='${{ env.TAG }}'
-        export WORKER_NODE_ROLE='worker'
-        envsubst < docker-compose.yml > docker-compose-deploy.yml
-        cat docker-compose-deploy.yml
-        
+              
         # Copy the docker-compose file to the manager node
         scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
         
         # Connect and deploy to manager node
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << ENDSSH
-        # Environment variables are already exported in the host shell and the values will be expanded
-        # since we removed the single quotes from the ENDSSH delimiter
-        
-        # Show the environment for debugging
-        env | grep -E 'DOCKERHUB|IMAGE|TAG|WORKER'
-        
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << ENDSSH    
         # Deploy the stack using the uploaded docker-compose file
         docker stack deploy -c docker-compose.yml vietnam-app
           
