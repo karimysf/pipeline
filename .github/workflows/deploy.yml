@@ -2,8 +2,9 @@ name: Docker Image CI/CD
 
 on:
   push:
-    paths:
-      - 'src/index.html'
+    branches:
+      - master
+    
   workflow_dispatch:
 
 env: 
