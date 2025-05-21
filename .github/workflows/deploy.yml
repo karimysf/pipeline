@@ -8,7 +8,7 @@ on:
 env: 
   IMAGE_NAME: fevertokens-technical-assesst
   TAG: latest
-  MANAGER_IP : ip172-18-0-78-d0moggi91nsg00d1rnj0.direct.labs.play-with-docker.com
+  MANAGER_IP : ip172-18-0-44-d0mtqtq91nsg00fc0d5g.direct.labs.play-with-docker.com
   WORKER_NODE_ROLE: worker
 jobs:
 
