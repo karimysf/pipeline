@@ -53,6 +53,13 @@ jobs:
         remote_host: ${{ env.MANAGER_IP }}
         args: "service rm fevertokens-deployment_web"
       continue-on-error: true
+
+    - name: Pull latest image on Swarm manager
+      uses: sagebind/docker-swarm-deploy-action@v2
+      with:
+        remote_host: ${{ env.MANAGER_IP }}
+        args: "pull ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
+
     - name: Deploy to Docker Swarm using action
       uses: sagebind/docker-swarm-deploy-action@v2
       with:
