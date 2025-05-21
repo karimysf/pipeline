@@ -13,7 +13,6 @@ env:
   WORKER_IP: ${{ vars.WORKER_IP }}
   MANAGER_HOST: ${{ vars.MANAGER_HOST }}  
   SSH_PORT: ${{ vars.SSH_PORT }}
-  DOCKER_HOST: "tcp://ip172-18-0-48:37862"
 jobs:
 
   build:
