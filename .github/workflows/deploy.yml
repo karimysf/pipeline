@@ -8,7 +8,7 @@ on:
 env: 
   IMAGE_NAME: fevertokens-technical-assesst
   TAG: latest
-  MANAGER_IP : ssh ip172-18-0-40-d0mtqtq91nsg00fc0d5g.direct.labs.play-with-docker.com
+  MANAGER_IP : ip172-18-0-78-d0moggi91nsg00d1rnj0.direct.labs.play-with-docker.com
   WORKER_NODE_ROLE: worker
 jobs:
 
@@ -46,13 +46,19 @@ jobs:
       run: | 
         ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-
-    - name: Deploy to Docker Swarm using action
+    
+    - name: Remove existing service (if any)
       uses: sagebind/docker-swarm-deploy-action@v2
       with:
         remote_host: ${{ env.MANAGER_IP }}
-        args: "stack deploy --with-registry-auth --compose-file docker-compose.yml fevertokens-deployment"
+        args: "service rm fevertokens-deployment_web || true"
+    - name: Deploy to Docker Swarm using action
+      uses: sagebind/docker-swarm-deploy-action@v2
+      with:
+        remote_host:  ${{ env.MANAGER_IP }}
+        args: "stack deploy --compose-file docker-compose.yml fevertokens-deployment"
       env:
-        DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        IMAGE_NAME: ${{ env.IMAGE_NAME }}
-        TAG: ${{ env.TAG }}
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}   # this environment variable is going to be passed to docker-compose.yml file
+        IMAGE_NAME : ${{ env.IMAGE_NAME }}
+        TAG  : ${{ env.TAG }}
+        WORKER_NODE_ROLE : ${{env.WORKER_NODE_ROLE}}
