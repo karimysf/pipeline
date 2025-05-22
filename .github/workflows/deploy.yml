@@ -74,7 +74,9 @@ jobs:
 
           # Copy file to manager node
           echo "copying docker compose to manager"
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
+          sftp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << EOF
+            put /d/fevertokens_test/fevertokens-tech-test/docker-compose.yml docker-compose.yml
+            EOF
           echo "copying docker compose to manager successfull"
 
           echo "START SSH PROCEDURES"
