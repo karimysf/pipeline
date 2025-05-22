@@ -59,7 +59,7 @@ jobs:
 
           # Add manager to known hosts
           echo "Adding Hostname to known_hosts"
-          ssh-keyscan -H "$HOSTNAME" >> ~/.ssh/known_hosts
+          ssh-keyscan -H -p "$SSH_PORT" "$HOSTNAME" >> ~/.ssh/known_hosts
           echo "✅ Adding Hostname to known_hosts successfull"
 
           # Prepare variables for envsubst
