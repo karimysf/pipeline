@@ -37,11 +37,11 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v4
 
-    - name: Generate SSH key
-      run: |
-        ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519 -y
-        echo "Public key that should be added to PWD nodes:"
-        cat ~/.ssh/id_ed25519.pub
+    #- name: Generate SSH key
+      #run: |
+        #ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519 -y
+        #echo "Public key that should be added to PWD nodes:"
+        #cat ~/.ssh/id_ed25519.pub
 
     - name: Deploy to Docker Swarm
       env:
@@ -50,45 +50,38 @@ jobs:
         MANAGER_HOST: ${{ vars.MANAGER_HOST }}
         SSH_PORT: ${{ vars.SSH_PORT }}
       run: |
-          
-
-          # Extract host from MANAGER_HOST
+          # Prepare SSH access
           HOSTNAME=${MANAGER_HOST#*@}
-          #echo "HOSTNAME: $HOSTNAME"
-          #echo "MANAGER_HOST: $MANAGER_HOST"
-
-          # Add manager to known hosts
           echo "Adding Hostname to known_hosts"
           ssh-keyscan -H "$HOSTNAME" >> ~/.ssh/known_hosts
-          echo "✅ Adding Hostname to known_hosts successfull"
-
-          # Prepare variables for envsubst
+          echo "✅ Hostname added"
+      
+          # Set up environment
           export DOCKERHUB_USERNAME="${{ secrets.DOCKER_USERNAME }}"
           export IMAGE_NAME="${{ env.IMAGE_NAME }}"
           export TAG="${{ env.TAG }}"
           export WORKER_NODE_ROLE="worker"
-
-          # Generate deploy compose file
+      
+          # Create final compose file
           envsubst < docker-compose.yml > docker-compose-deploy.yml
-          #cat docker-compose-deploy.yml
-
-          # Copy file to manager node
-          echo "copying docker compose to manager"
-          #sftp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << EOF
-            #put /mnt/d/fevertokens_test/fevertokens-tech-test/docker-compose.yml docker-compose.yml
-            #quit
-          #EOF
-          echo "copying docker compose to manager successfull"
-
-          echo "START SSH PROCEDURES"
+          cat docker-compose-deploy.yml
+      
+          # Copy to manager using SFTP
+          echo "Copying docker-compose to manager via SFTP"
+          sftp -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << EOF
+            put docker-compose-deploy.yml docker-compose.yml
+            bye
+          EOF
+          echo "✅ Copy successful"
+      
           # Connect and deploy
-          echo "✅ Connecting to manager"
-          #ssh -i ~/.ssh/id_ed25519 $MANAGER_HOST 'docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service'
-          ssh -i ~/.ssh/id_ed25519 $MANAGER_HOST << 'EOF'
+          echo "✅ Connecting to manager and deploying"
+          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST << EOF
             export DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
             export IMAGE_NAME=${IMAGE_NAME}
             export TAG=${TAG}
             docker stack deploy -c docker-compose.yml feverTokens-tech-assesst-service
           EOF
+      
 
 
