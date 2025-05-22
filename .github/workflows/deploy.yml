@@ -83,6 +83,6 @@ jobs:
           echo "START SSH PROCEDURES"
           # Connect and deploy
           echo "✅ Connecting to manager"
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p 22 $MANAGER_HOST 'docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service'
+          ssh -i ~/.ssh/id_ed25519 $MANAGER_HOST 'docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service'
 
 
