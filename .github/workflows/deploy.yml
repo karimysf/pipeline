@@ -54,11 +54,13 @@ jobs:
 
           # Extract host from MANAGER_HOST
           HOSTNAME=${MANAGER_HOST#*@}
-          echo "HOSTNAME: $HOSTNAME"
-          echo "MANAGER_HOST: $MANAGER_HOST"
+          #echo "HOSTNAME: $HOSTNAME"
+          #echo "MANAGER_HOST: $MANAGER_HOST"
 
           # Add manager to known hosts
+          echo "Adding Hostname to known_hosts"
           ssh-keyscan -H "$HOSTNAME" >> ~/.ssh/known_hosts
+          echo "✅ Adding Hostname to known_hosts successfull"
 
           # Prepare variables for envsubst
           export DOCKERHUB_USERNAME="${{ secrets.DOCKER_USERNAME }}"
@@ -68,14 +70,18 @@ jobs:
 
           # Generate deploy compose file
           envsubst < docker-compose.yml > docker-compose-deploy.yml
-          cat docker-compose-deploy.yml
+          #cat docker-compose-deploy.yml
 
           # Copy file to manager node
+          echo "copying docker compose to manager"
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT docker-compose-deploy.yml $MANAGER_HOST:~/docker-compose.yml
+          echo "copying docker compose to manager successfull"
 
-          echo "$SSH_PORT && $MANAGER_HOST"
+          echo "START SSH PROCEDURES"
           # Connect and deploy
+          echo "✅ Connecting to manager"
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST 'echo "✅ Connected to manager"'
+          echo "✅ Connected to manager"
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST 'docker --version'
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST 'docker info'
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST 'docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service'
