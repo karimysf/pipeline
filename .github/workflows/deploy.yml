@@ -74,15 +74,15 @@ jobs:
 
           # Copy file to manager node
           echo "copying docker compose to manager"
-          sftp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << EOF
-            put /mnt/d/fevertokens_test/fevertokens-tech-test/docker-compose.yml docker-compose.yml
-            quit
-          EOF
+          #sftp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << EOF
+            #put /mnt/d/fevertokens_test/fevertokens-tech-test/docker-compose.yml docker-compose.yml
+            #quit
+          #EOF
           echo "copying docker compose to manager successfull"
 
           echo "START SSH PROCEDURES"
           # Connect and deploy
           echo "✅ Connecting to manager"
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST 'docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p 22 $MANAGER_HOST 'docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service'
 
 
