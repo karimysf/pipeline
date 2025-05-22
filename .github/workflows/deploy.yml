@@ -48,7 +48,7 @@ jobs:
         MANAGER_IP: ${{ vars.MANAGER_IP }}
         WORKER_IP: ${{ vars.WORKER_IP }}
         MANAGER_HOST: ${{ vars.MANAGER_HOST }}
-        SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+        SSH_PORT: ${{ vars.SSH_PORT }}
       run: |
           
 
