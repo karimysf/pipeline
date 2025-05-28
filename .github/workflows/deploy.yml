@@ -76,12 +76,7 @@ jobs:
       
           # Connect and deploy
           echo "✅ Connecting to manager and deploying"
-          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST << EOF
-            export DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
-            export IMAGE_NAME=${IMAGE_NAME}
-            export TAG=${TAG}
-            docker stack deploy -c docker-compose.yml feverTokens-tech-assesst-service
-          EOF
+          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "docker stack deploy -c docker-compose.yml feverTokens-tech-assesst-service"
       
 
 
