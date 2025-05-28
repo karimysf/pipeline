@@ -52,7 +52,7 @@ jobs:
       run: |
           # Prepare SSH access
           HOSTNAME=${MANAGER_HOST#*@}
-          echo "Adding Hostname to known_hosts"
+          echo "Adding $HOSTNAME to known_hosts"
           ssh-keyscan -H "$HOSTNAME" >> ~/.ssh/known_hosts
           echo "✅ Hostname added"
       
