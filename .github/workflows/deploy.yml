@@ -74,7 +74,9 @@ jobs:
             bye
           EOF
           echo "✅ Copy successful"
-      
+          echo "test ssh "
+          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "echo 'Hello'"
+
           # Connect and deploy
           echo "✅ Connecting to manager and deploying"
           ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "docker stack deploy -c docker-compose.yml feverTokens-tech-assesst-service"
