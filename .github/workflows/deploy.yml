@@ -10,6 +10,7 @@ on:
 env: 
   IMAGE_NAME: fevertokens-technical-assesst
   TAG: latest
+  SSH_PORT: 22
 
 jobs:
   build:
@@ -37,12 +38,7 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v4
 
-    #- name: Generate SSH key
-      #run: |
-        #ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519 -y
-        #echo "Public key that should be added to PWD nodes:"
-        #cat ~/.ssh/id_ed25519.pub
-
+   
     - name: Deploy to Docker Swarm
       env:
         MANAGER_IP: ${{ vars.MANAGER_IP }}
@@ -52,14 +48,18 @@ jobs:
       run: |
           # Prepare SSH access
           HOSTNAME=${MANAGER_HOST#*@}
-          # Remove old key (if exists)
-          ssh-keygen -R "$HOSTNAME" -f ~/.ssh/known_hosts
+          echo "Setting un SSH for Connection"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/play
+          chmod 600 ~/.ssh/play
+          ssh-keygen -R "[$MANAGER_HOST]:$SSH_PORT" || true
+          ssh-keyscan -p $SSH_PORT $MANAGER_HOST >> ~/.ssh/known_hosts
+          
+          echo "NOW TESTING CONNECTION"
+          #SSH TEST
+          ssh -i ~/.ssh/play -p $SSH_PORT ip172-18-0-48-d0sck9291nsg00bvhmb0@direct.labs.play-with-docker.com
 
-          # Add new key
-          echo "Adding $HOSTNAME to known_hosts"
-          ssh-keyscan -H "$HOSTNAME" >> ~/.ssh/known_hosts
-          echo "✅ Hostname added"
-      
+
           # Set up environment
           export DOCKERHUB_USERNAME="${{ secrets.DOCKER_USERNAME }}"
           export IMAGE_NAME="${{ env.IMAGE_NAME }}"
@@ -72,7 +72,7 @@ jobs:
       
           # Copy to manager using SFTP
           echo "Copying docker-compose to manager via SFTP"
-          sftp -i ~/.ssh/id_ed25519 -P $SSH_PORT $MANAGER_HOST << EOF
+          sftp -i ~/.ssh/play -P $SSH_PORT $MANAGER_HOST << EOF
             put docker-compose-deploy.yml docker-compose.yml
             bye
           EOF
@@ -80,7 +80,7 @@ jobs:
       
           # Connect and deploy
           echo "✅ Connecting to manager and deploying"
-          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service"
+          ssh -i ~/.ssh/play -p $SSH_PORT $MANAGER_HOST "sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service"
 
       
 
