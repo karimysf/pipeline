@@ -80,7 +80,11 @@ jobs:
       
           # Connect and deploy
           echo "✅ Connecting to manager and deploying"
-          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service"
+          ssh -tt -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST << EOF
+            sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service
+            exit \$?  # Ensure SSH exits with the correct status
+          EOF
+
       
 
 
