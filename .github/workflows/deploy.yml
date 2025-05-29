@@ -53,7 +53,7 @@ jobs:
           # Prepare SSH access
           HOSTNAME=${MANAGER_HOST#*@}
           # Remove old key (if exists)
-          ssh-keygen -R "$MANAGER_IP" -f ~/.ssh/known_hosts
+          ssh-keygen -R "$HOSTNAME" -f ~/.ssh/known_hosts
 
           # Add new key
           echo "Adding $HOSTNAME to known_hosts"
