@@ -54,7 +54,7 @@ jobs:
           HOSTNAME=${MANAGER_HOST#*@}
           ssh-keygen -R "$MANAGER_IP" -H  
           echo "Adding $HOSTNAME to known_hosts"
-          ssh-keyscan "$MANAGER_IP" >> ~/.ssh/known_hosts
+          ssh-keyscan -R "$MANAGER_IP" >> ~/.ssh/known_hosts
           echo "✅ Hostname added"
       
           # Set up environment
@@ -74,12 +74,10 @@ jobs:
             bye
           EOF
           echo "✅ Copy successful"
-          echo "test ssh "
-          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "echo 'Hello'"
-
+      
           # Connect and deploy
           echo "✅ Connecting to manager and deploying"
-          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "docker stack deploy -c docker-compose.yml feverTokens-tech-assesst-service"
+          ssh -i ~/.ssh/id_ed25519 -p $SSH_PORT $MANAGER_HOST "sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service"
       
 
 
