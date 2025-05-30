@@ -68,11 +68,15 @@
             mkdir -p ~/.ssh
             echo "$PRIVATE_KEY" > ~/.ssh/play
             chmod 600 ~/.ssh/play 
+            ssh-keyscan -H $MANAGER_HOST > ~/.ssh/known_hosts
             echo "Testing SSH connection to $SSH_HOST"
 
-            ssh -T -i  ~/.ssh/play -p 8022 -o StrictHostKeyChecking=no  $SSH_HOST "echo SSH connection successful ; sleep 1;true" || true
-            echo "PASSED"
+            ssh -i  ~/.ssh/play  $SSH_HOST <<'EOF'
+              ls
+              pwd
+            EOF
 
+            echo "DONE i guess"
 
             # Set up environment
             export DOCKERHUB_USERNAME="${{ secrets.DOCKER_USERNAME }}"
