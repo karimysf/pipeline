@@ -35,6 +35,7 @@
     deploy: 
       runs-on:  ubuntu-latest
       needs: [build]
+      environment: IMAGE_NAME
       defaults:
         run:
           shell: bash
