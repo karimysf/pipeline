@@ -70,7 +70,7 @@
             chmod 600 ~/.ssh/play 
             echo "Testing SSH connection to $SSH_HOST"
 
-            ssh -T -i  ~/.ssh/play -o StrictHostKeyChecking=no  $SSH_HOST "echo SSH connection successful ; sleep 1; exit 0"
+            ssh -T -i  ~/.ssh/play -o StrictHostKeyChecking=no  $SSH_HOST "echo SSH connection successful ; sleep 1;true"
             echo "PASSED"
 
 
