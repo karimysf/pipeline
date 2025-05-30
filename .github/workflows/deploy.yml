@@ -51,6 +51,7 @@
           MANAGER_HOST: ${{ vars.MANAGER_HOST }}
           SSH_PORT: ${{ vars.SSH_PORT }}
           SSH_HOST:  ${{ secrets.MANAGER_SSH }}
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
             # Prepare SSH access
             HOSTNAME=${MANAGER_HOST#*@}
@@ -65,7 +66,7 @@
 
             echo "Setting up SSH for Connection"
             mkdir -p ~/.ssh
-            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/play
+            echo "$PRIVATE_KEY" > ~/.ssh/play
             chmod 600 ~/.ssh/play 
             touch ~/.ssh/known_hosts
 
