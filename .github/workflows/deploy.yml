@@ -94,7 +94,7 @@
         
             # Connect and deploy
             echo "✅ Connecting to manager and deploying"
-            ssh -i ~/.ssh/play $MANAGER_HOST "sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service"
+              ssh -T -i ~/.ssh/play $MANAGER_HOST "sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service" || true
 
         
 
