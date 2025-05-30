@@ -64,18 +64,18 @@
 
 
 
-            echo "Setting up SSH for Connection"
-            mkdir -p ~/.ssh
-            echo "$PRIVATE_KEY" > ~/.ssh/play
-            chmod 600 ~/.ssh/play 
-            cat ~/.ssh/play
-            touch ~/.ssh/known_hosts
-            set +e
-            ssh-keygen -R "[$MANAGER_HOST]:$SSH_PORT"
-            set -e
+            # echo "Setting up SSH for Connection"
+            # mkdir -p ~/.ssh
+            # echo "$PRIVATE_KEY" > ~/.ssh/play
+            # chmod 600 ~/.ssh/play 
+            # cat ~/.ssh/play
+            # touch ~/.ssh/known_hosts
+            # set +e
+            # ssh-keygen -R "[$MANAGER_HOST]:$SSH_PORT"
+            # set -e
 
-            # Add fresh host key (overwrite to avoid duplicates)
-            ssh-keyscan -p $SSH_PORT $MANAGER_HOST > ~/.ssh/known_hosts
+            # # Add fresh host key (overwrite to avoid duplicates)
+            # ssh-keyscan -p $SSH_PORT $MANAGER_HOST > ~/.ssh/known_hosts
 
             echo "Testing SSH connection to $SSH_HOST"
 
