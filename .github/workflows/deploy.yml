@@ -70,7 +70,7 @@
             chmod 600 ~/.ssh/play 
             echo "Testing SSH connection to $SSH_HOST"
             
-            ssh -i  ~/.ssh/play -o StrictHostKeyChecking=no  $SSH_HOST << 'EOF'
+            ssh -t -i  ~/.ssh/play -o StrictHostKeyChecking=no  $SSH_HOST << 'EOF'
               ls
               pwd
             EOF
@@ -86,7 +86,7 @@
             # Create final compose file
             envsubst < docker-compose.yml > docker-compose-deploy.yml
             cat docker-compose-deploy.yml
-        
+            
             # Copy to manager using SFTP
             echo "Copying docker-compose to manager via SFTP"
             sftp -i ~/.ssh/play -P $SSH_PORT $SSH_HOST << EOF
