@@ -86,7 +86,7 @@
         
             # Copy to manager using SFTP
             echo "Copying docker-compose to manager via SFTP"
-            sftp -i ~/.ssh/play -P $SSH_PORT $MANAGER_HOST << EOF
+            sftp -i ~/.ssh/play -P $SSH_PORT $SSH_HOST << EOF
               put docker-compose-deploy.yml docker-compose.yml
               bye
             EOF
@@ -94,7 +94,7 @@
         
             # Connect and deploy
             echo "✅ Connecting to manager and deploying"
-              ssh -T -i ~/.ssh/play $MANAGER_HOST "sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service" || true
+              ssh -T -i ~/.ssh/play $SSH_HOST "sudo docker stack deploy -c ~/docker-compose.yml feverTokens-tech-assesst-service" || true
 
         
 
