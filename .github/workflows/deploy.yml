@@ -77,8 +77,9 @@
             # Add fresh host key (overwrite to avoid duplicates)
             ssh-keyscan -p $SSH_PORT $MANAGER_HOST > ~/.ssh/known_hosts
 
-            echo "Testing SSH connection"
-            ssh -i ~/.ssh/play -p $SSH_PORT $SSH_HOST "echo SSH connection successful"
+            echo "Testing SSH connection to $SSH_HOST"
+
+            ssh -i ~/.ssh/play  -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_HOST "echo SSH connection successful"
 
 
 
