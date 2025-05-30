@@ -11,7 +11,7 @@
   env: 
     IMAGE_NAME: fevertokens-technical-assesst
     TAG: latest
-    SSH_PORT: 22
+   
 
   jobs:
     build:
@@ -65,6 +65,8 @@
             mkdir -p ~/.ssh
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/play
             chmod 600 ~/.ssh/play
+            touch ~/.ssh/known_hosts
+
             ssh-keygen -R "[$MANAGER_HOST]:$SSH_PORT" || true
             ssh-keyscan -p $SSH_PORT $MANAGER_HOST >> ~/.ssh/known_hosts
             
