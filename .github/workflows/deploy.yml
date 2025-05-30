@@ -71,7 +71,7 @@
             sleep 2 
             echo "Testing SSH connection to $SSH_HOST"
             
-            ssh -t -i  ~/.ssh/play -o StrictHostKeyChecking=no  $SSH_HOST << 'EOF'
+            ssh -vvv -t -i  ~/.ssh/play -o StrictHostKeyChecking=no  $SSH_HOST << 'EOF'
               ls
               pwd
             EOF
