@@ -71,7 +71,7 @@
             sleep 2 
             echo "Testing SSH connection to $SSH_HOST"
             
-            ssh -vvv -f -i  ~/.ssh/play -o StrictHostKeyChecking=no  $SSH_HOST "nohup echo "Success"  output.log 2>&1 & "
+            ssh -vvv -i  ~/.ssh/play   $SSH_HOST " echo "Success"   "
 
             echo "DONE i guess"
 
