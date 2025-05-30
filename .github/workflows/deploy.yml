@@ -72,15 +72,13 @@
             touch ~/.ssh/known_hosts
             set +e
             ssh-keygen -R "[$MANAGER_HOST]:$SSH_PORT"
-            echo "ssh-keygen exit code: $?"
             set -e
 
-            ssh-keyscan -p $SSH_PORT $MANAGER_HOST >> ~/.ssh/known_hosts
-            echo "ssh-keyscan exit code: $?"
-            
-            echo "NOW TESTING CONNECTION"
-            #SSH TEST
-            ssh -i ~/.ssh/play -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_HOST "echo SSH connection successful"
+            # Add fresh host key (overwrite to avoid duplicates)
+            ssh-keyscan -p $SSH_PORT $MANAGER_HOST > ~/.ssh/known_hosts
+
+            echo "Testing SSH connection"
+            ssh -i ~/.ssh/play -p $SSH_PORT $SSH_HOST "echo SSH connection successful"
 
 
 
