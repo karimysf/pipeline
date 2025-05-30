@@ -50,7 +50,7 @@
           WORKER_IP: ${{ vars.WORKER_IP }}
           MANAGER_HOST: ${{ vars.MANAGER_HOST }}
           SSH_PORT: ${{ vars.SSH_PORT }}
-          SSH_HOST:  ${{ secrets.MANAGER_SSH }}
+          SSH_HOST:  ${{ vars.SSH_HOST }}
           PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
             # Prepare SSH access
@@ -64,10 +64,10 @@
 
 
 
-            # echo "Setting up SSH for Connection"
-            # mkdir -p ~/.ssh
-            # echo "$PRIVATE_KEY" > ~/.ssh/play
-            # chmod 600 ~/.ssh/play 
+            echo "Setting up SSH for Connection"
+            mkdir -p ~/.ssh
+            echo "$PRIVATE_KEY" > ~/.ssh/play
+            chmod 600 ~/.ssh/play 
             # cat ~/.ssh/play
             # touch ~/.ssh/known_hosts
             # set +e
