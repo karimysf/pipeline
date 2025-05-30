@@ -68,10 +68,9 @@
             mkdir -p ~/.ssh
             echo "$PRIVATE_KEY" > ~/.ssh/play
             chmod 600 ~/.ssh/play 
-            ssh-keyscan -H $MANAGER_HOST > ~/.ssh/known_hosts
             echo "Testing SSH connection to $SSH_HOST"
-
-            ssh -i  ~/.ssh/play  $SSH_HOST <<'EOF'
+            
+            ssh -i  ~/.ssh/play -o StrictHostKeyChecking=no  $SSH_HOST << 'EOF'
               ls
               pwd
             EOF
