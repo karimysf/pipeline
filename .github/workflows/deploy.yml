@@ -50,9 +50,11 @@
           WORKER_IP: ${{ vars.WORKER_IP }}
           MANAGER_HOST: ${{ vars.MANAGER_HOST }}
           SSH_PORT: ${{ vars.SSH_PORT }}
+          SSH_HOST:  ${{ secrets.MANAGER_SSH }}
         run: |
             # Prepare SSH access
             HOSTNAME=${MANAGER_HOST#*@}
+            echo "$MANAGER_HOST"
             echo "Checking all variables"
             echo "${MANAGER_HOST}"
             echo "${MANAGER_IP}"
@@ -64,7 +66,7 @@
             echo "Setting up SSH for Connection"
             mkdir -p ~/.ssh
             echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/play
-            chmod 600 ~/.ssh/play
+            chmod 600 ~/.ssh/play 
             touch ~/.ssh/known_hosts
 
             ssh-keygen -R "[$MANAGER_HOST]:$SSH_PORT" || true
@@ -72,7 +74,7 @@
             
             echo "NOW TESTING CONNECTION"
             #SSH TEST
-            ssh -i ~/.ssh/play -p $SSH_PORT ${{ secrets.MANAGER_SSH }} "echo SSH connection successful"
+            ssh -i ~/.ssh/play -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_HOST "echo SSH connection successful"
 
 
 
