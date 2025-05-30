@@ -70,7 +70,8 @@
             chmod 600 ~/.ssh/play 
             sleep 2 
             echo "Testing SSH connection to $SSH_HOST"
-            
+            ssh-keyscan -H $HOSTNAME >> ~/.ssh/known_hosts
+
             ssh -vvv -i  ~/.ssh/play   $SSH_HOST " echo "Success"   "
 
             echo "DONE i guess"
